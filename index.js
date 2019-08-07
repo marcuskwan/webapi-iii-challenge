@@ -1,6 +1,6 @@
 // code away!
 
-const server = require("./server.js");
+const server = require("./api/server");
 
 const port = 8000;
 const greeting = "API IS RUNNING AHHHHH!!!!";

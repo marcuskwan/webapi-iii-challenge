@@ -2,7 +2,9 @@ const express = require('express')
 
 const server = express();
 
+// require the 2 routes
 const userRoutes = require('./users/userRouter')
+const postRoutes = require('./posts/postRouter')
 
 server.get('/', (req, res) => {
   res.send(`<h2>Let's write some middleware!</h2>`)
@@ -13,5 +15,9 @@ server.get('/', (req, res) => {
 function logger(req, res, next) {
 
 };
+
+// base url
+server.use('/users', userRoutes)
+server.use('/posts', postRoutes)
 
 module.exports = server;
