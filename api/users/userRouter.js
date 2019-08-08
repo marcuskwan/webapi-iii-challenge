@@ -4,6 +4,7 @@ const router = express.Router();
 
 // db var requiring userDb
 const db = require("./userDb");
+const postDb = require("../posts/postDb.js");
 
 // POST
 // create new user
@@ -14,7 +15,21 @@ router.post("/", (req, res) => {
     .catch(error => res.status(400).json({ error: "Couldn't create user" }));
 });
 
-router.post("/:id/posts", (req, res) => {});
+// add new post , returns the new post object with an added id
+router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
+  const user_id = req.params.id;
+  const { text } = req.body;
+  const post = {
+    user_id: `${user_id}`,
+    text: `${text}`,
+  };
+  postDb
+    .insert(post)
+    .then(post => res.status(200).json(post))
+    .catch(err =>
+      res.status(400).json({ message: "Couldn't create new post" }),
+    );
+});
 
 // GET
 // get an array of all users
@@ -34,7 +49,7 @@ router.get("/:id", (req, res) => {
     .catch(error => res.status(400).json({ error: "Failed to retrieve user" }));
 });
 // get specific user posts,
-router.get("/:id/posts", (req, res) => {
+router.get("/:id/posts", validateUserId, (req, res) => {
   const userId = req.params.id;
   db.getUserPosts(userId)
     .then(posts => res.status(200).json(posts))
@@ -43,7 +58,7 @@ router.get("/:id/posts", (req, res) => {
 
 //DELETE
 // delete a specific user, returns the deleted user object || object with no. of users deleted ?
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateUserId, (req, res) => {
   const id = req.params.id;
   db.remove(id)
     .then(deletedId => res.status(200).json(deletedId))
@@ -52,7 +67,7 @@ router.delete("/:id", (req, res) => {
 
 //PUT
 // updates a specific user, returns the updated user object ?
-router.put("/:id", validateUserId, (req, res) => {
+router.put("/:id", validateUserId, validateUser, (req, res) => {
   const updatedInfo = req.body;
   const id = req.params.id;
   db.update(id, updatedInfo)
@@ -77,6 +92,7 @@ function validateUserId(req, res, next) {
 
 function validateUser(req, res, next) {
   let user = req.body;
+  console.log("req.body", req.body);
   if (user && user.name) {
     next();
   } else {
@@ -85,7 +101,12 @@ function validateUser(req, res, next) {
 }
 
 function validatePost(req, res, next) {
-  
+  const body = req.body;
+  if (body && body.text) {
+    next();
+  } else {
+    res.status(404).json({ message: "Please input text" });
+  }
 }
 
 module.exports = router;
